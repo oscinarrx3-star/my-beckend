@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.main import app
 from app.database import Base, get_db
 from app.models.user import User
-from app.core.security import hash_password
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 engine = create_async_engine(TEST_DATABASE_URL)
@@ -52,6 +51,8 @@ async def registered_user_token(client, db_session):
     
     if response.status_code == 201:
         data = response.json()
-        return data.get("access_token", "")
-    
-    return ""
+        token = data.get("access_token", "")
+        assert token != "", "registered_user_token fixture returned empty string"
+        return token
+
+    raise AssertionError(f"registered_user_token fixture: registration failed with status {response.status_code}")

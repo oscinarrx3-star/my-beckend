@@ -3,10 +3,22 @@ from openai import AsyncOpenAI
 
 from app.config import get_settings
 from app.models.cv_analysis import CVAnalysis
-from app.core.exceptions import JobPostingFetchError
+from app.core.exceptions import JobPostingFetchError, APIError
 
 settings = get_settings()
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+# OpenAI client (lazy initialized)
+_client = None
+
+
+def get_openai_client() -> AsyncOpenAI:
+    """OpenAI client döndür (lazy initialization)."""
+    global _client
+    if _client is None:
+        if not settings.OPENAI_API_KEY:
+            raise APIError("OpenAI API key is not configured.")
+        _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    return _client
 
 MATCH_PROMPT = """
 CV anahtar kelimeleri: {cv_keywords}
@@ -31,6 +43,7 @@ async def match_cv_to_job(analysis: CVAnalysis, job_url: str) -> dict:
     cv_keywords = analysis.extracted_keywords or {}
 
     try:
+        client = get_openai_client()
         response = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -42,7 +55,14 @@ async def match_cv_to_job(analysis: CVAnalysis, job_url: str) -> dict:
         )
         import json
         return json.loads(response.choices[0].message.content)
-    except Exception:
+    except Exception as e:
+        if isinstance(e, APIError) or "API key" in str(e) or "not configured" in str(e):
+            return {
+                "match_score": 0,
+                "matching_keywords": [],
+                "missing_keywords": [],
+                "suggestions": ["OpenAI API key is not configured."],
+            }
         return {
             "match_score": 0,
             "matching_keywords": [],

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -23,7 +23,6 @@ async def match_job(
     )
     analysis = result.scalar_one_or_none()
     if not analysis:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Analiz bulunamadı")
 
     match_result = await match_cv_to_job(analysis, str(body.job_url))

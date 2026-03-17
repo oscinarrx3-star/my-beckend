@@ -1,3 +1,4 @@
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 import hmac
 import hashlib
@@ -8,6 +9,7 @@ from app.models.payment import Payment
 from app.models.user import User
 from app.schemas.payment import CreatePaymentRequest
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 PRICES = {
@@ -46,12 +48,12 @@ async def create_payment(user: User, body: CreatePaymentRequest, db: AsyncSessio
     }
 
 
-async def handle_payment_callback(provider: str, db: AsyncSession, payload: dict = None, signature: str = None) -> dict:
+async def handle_payment_callback(provider: str, db: AsyncSession, payload: dict = None, signature: str = None, raw_body: bytes = b"") -> dict:
     """Ödeme sağlayıcısından gelen callback'i işler (signature doğrulama ile)."""
     if provider == "iyzico":
         return await _handle_iyzico_callback(payload or {}, db, signature)
     elif provider == "stripe":
-        return await _handle_stripe_callback(payload or {}, db, signature)
+        return await _handle_stripe_callback(payload or {}, db, signature, raw_body)
     else:
         return {"status": "error", "message": "Bilinmeyen sağlayıcı"}
 
@@ -192,7 +194,7 @@ async def _handle_iyzico_callback(payload: dict, db: AsyncSession, signature: st
     }
 
 
-async def _handle_stripe_callback(payload: dict, db: AsyncSession, signature: str = None) -> dict:
+async def _handle_stripe_callback(payload: dict, db: AsyncSession, signature: str = None, raw_body: bytes = b"") -> dict:
     """Stripe webhook'ini işle (signature doğrulama ile)."""
     # Stripe webhook signature doğrulama
     # https://stripe.com/docs/webhooks/signatures
@@ -200,18 +202,25 @@ async def _handle_stripe_callback(payload: dict, db: AsyncSession, signature: st
         try:
             import stripe
             stripe.api_key = settings.STRIPE_SECRET_KEY
-            
+
             event = stripe.Webhook.construct_event(
-                payload_str=json.dumps(payload),
+                payload=raw_body,
                 sig_header=signature,
                 secret=settings.STRIPE_WEBHOOK_SECRET,
             )
         except Exception as e:
-            print(f"Stripe signature verification failed: {e}")
+            logger.error(f"Stripe signature verification failed: {e}")
             return {
                 "status": "error",
                 "message": "Invalid signature",
+                "http_status": 400,
             }
+    elif signature and not settings.STRIPE_WEBHOOK_SECRET:
+        logger.warning(
+            "STRIPE_WEBHOOK_SECRET is not configured — skipping webhook signature verification. "
+            "Set STRIPE_WEBHOOK_SECRET in production."
+        )
+        event = payload
     else:
         event = payload
     

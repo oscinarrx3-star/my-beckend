@@ -119,7 +119,7 @@ pytest --cov=app --cov-report=html
 
 ## 📊 Test Sonuçları
 
-✅ **19/19 Tests Passing**
+✅ **22/22 Tests Passing**
 - Auth (register, login, token validation)
 - CV Upload & Analysis
 - ATS Scoring
@@ -167,6 +167,8 @@ pytest --cov=app --cov-report=html
 - **CORS:** Configurable origins
 - **Rate Limiting:** (Üretim'de eklenebilir)
 - **Error Handling:** Detailed logging, generic error responses
+
+> **Stripe Webhook:** İmza doğrulaması için **raw request body** (bayt) kullanılır; JSON olarak yeniden serileştirilmiş gövde kabul edilmez. Üretimde `STRIPE_WEBHOOK_SECRET` ortam değişkenini mutlaka ayarlayın. Secret eksikse doğrulama atlanır ve bir uyarı loglanır.
 
 ## 📝 Logging
 
@@ -231,6 +233,9 @@ server {
 
 ### "OPENAI_API_KEY not set"
 → `.env` dosyasına `OPENAI_API_KEY` ekle veya fallback analiz kullan (ücretsiz, daha basit)
+
+### "job match returns error / 503"
+→ Set `OPENAI_API_KEY` in `.env`. Without it, job matching will return an error response.
 
 ### "Payment webhook signature invalid"
 → Webhook header'ında `x-iyzico-signature` veya `stripe-signature` doğru mu?

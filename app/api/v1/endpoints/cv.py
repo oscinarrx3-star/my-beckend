@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -100,6 +100,5 @@ async def get_analysis(
     )
     analysis = result.scalar_one_or_none()
     if not analysis:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Analiz bulunamadı")
     return analysis

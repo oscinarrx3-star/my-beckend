@@ -15,6 +15,7 @@ class Payment(Base):
     payment_type: Mapped[str] = mapped_column(String(50), nullable=False)  # subscription / per_analysis
     provider: Mapped[str] = mapped_column(String(50), nullable=False)  # iyzico / stripe
     provider_payment_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    transaction_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")  # pending / completed / failed
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
