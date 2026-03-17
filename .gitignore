@@ -26,6 +26,10 @@ uploads/*
 alembic/versions/*.py
 !alembic/versions/__init__.py
 
+# Logs
+logs/
+*.log
+
 # OS
 Thumbs.db
 .DS_Store

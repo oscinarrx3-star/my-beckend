@@ -1,8 +1,0 @@
-2026-03-16 17:34:23,042 - app - INFO - [logging_config.py:75] - Logging initialized
-2026-03-17 13:12:37,129 - app - INFO - [logging_config.py:75] - Logging initialized
-2026-03-17 13:15:54,669 - app - INFO - [logging_config.py:75] - Logging initialized
-2026-03-17 13:15:56,543 - app.services.payment_service - ERROR - [payment_service.py:212] - Stripe signature verification failed: No signatures found matching the expected signature for payload
-2026-03-17 13:16:34,246 - app - INFO - [logging_config.py:75] - Logging initialized
-2026-03-17 13:16:36,016 - app.services.payment_service - ERROR - [payment_service.py:212] - Stripe signature verification failed: No signatures found matching the expected signature for payload
-2026-03-17 13:17:51,519 - app - INFO - [logging_config.py:75] - Logging initialized
-2026-03-17 13:17:53,262 - app.services.payment_service - ERROR - [payment_service.py:212] - Stripe signature verification failed: No signatures found matching the expected signature for payload
